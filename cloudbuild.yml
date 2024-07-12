@@ -16,3 +16,5 @@ steps:
         "push",
         "us-east1-docker.pkg.dev/score-notifier-429122/image-registry/ms-users",
       ]
+
+logsBucket: CLOUD_LOGGING_ONLY
