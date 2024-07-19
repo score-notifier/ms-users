@@ -8,7 +8,11 @@ import {
 import { PrismaClient } from '@prisma/client';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { NATS_SERVICE } from 'src/config';
-import { CreateUserProfileDto, CreateSubscriptionDto } from './dto';
+import {
+  CreateUserProfileDto,
+  CreateSubscriptionDto,
+  GetSubscriptionsDto,
+} from './dto';
 import { firstValueFrom } from 'rxjs';
 
 @Injectable()
@@ -114,8 +118,6 @@ export class UsersService extends PrismaClient implements OnModuleInit {
         },
       });
 
-      this.client.emit('notification.subscribe.team', createSubscriptionDto);
-
       return subscription;
     } catch (error) {
       throw new RpcException({
@@ -123,6 +125,22 @@ export class UsersService extends PrismaClient implements OnModuleInit {
         message: error.message || 'Error creating subscription',
       });
     }
+  }
+
+  async getSubscriptions({ teamId, leagueId }: GetSubscriptionsDto) {
+    return this.subscription.findMany({
+      where: {
+        teamId: teamId,
+        leagueId: leagueId,
+      },
+    });
+  }
+
+  async checkUserExists(userId: string): Promise<{ exists: boolean }> {
+    const user = await this.userProfile.findUnique({
+      where: { id: userId },
+    });
+    return { exists: !!user };
   }
 
   private async checkLeagueExists(leagueId: string): Promise<boolean> {

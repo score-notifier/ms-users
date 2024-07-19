@@ -1,6 +1,10 @@
-import { Controller } from '@nestjs/common';
+import { Controller, ParseUUIDPipe } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { CreateUserProfileDto, CreateSubscriptionDto } from './dto';
+import {
+  CreateUserProfileDto,
+  CreateSubscriptionDto,
+  GetSubscriptionsDto,
+} from './dto';
 import { UsersService } from './users.service';
 
 @Controller()
@@ -17,5 +21,15 @@ export class UsersController {
     @Payload() createSubscriptionDto: CreateSubscriptionDto,
   ) {
     return this.usersService.createSubscription(createSubscriptionDto);
+  }
+
+  @MessagePattern('user.get.subscriptions')
+  async getSubscriptions(@Payload() getSubscriptionsDto: GetSubscriptionsDto) {
+    return this.usersService.getSubscriptions(getSubscriptionsDto);
+  }
+
+  @MessagePattern('user.exists')
+  async checkUserExists(@Payload('userId', ParseUUIDPipe) userId: string) {
+    return this.usersService.checkUserExists(userId);
   }
 }
