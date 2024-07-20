@@ -208,11 +208,11 @@ export class UsersService extends PrismaClient implements OnModuleInit {
     }
   }
 
-  async checkUserExists(userId: string): Promise<{ exists: boolean }> {
+  async checkUserExists(userId: string): Promise<boolean> {
     const user = await this.userProfile.findUnique({
       where: { id: userId },
     });
-    return { exists: !!user };
+    return !!user;
   }
 
   private async checkLeagueExists(leagueId: string): Promise<boolean> {
