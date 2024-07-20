@@ -23,13 +23,23 @@ export class UsersController {
     return this.usersService.createSubscription(createSubscriptionDto);
   }
 
-  @MessagePattern('user.get.subscriptions')
+  @MessagePattern('user.get.subscriptions.all')
   async getSubscriptions(@Payload() getSubscriptionsDto: GetSubscriptionsDto) {
     return this.usersService.getSubscriptions(getSubscriptionsDto);
+  }
+
+  @MessagePattern('user.get.subscriptions')
+  async getUserSubscriptions(@Payload('userId', ParseUUIDPipe) userId: string) {
+    return this.usersService.getUserSubscriptions(userId);
   }
 
   @MessagePattern('user.exists')
   async checkUserExists(@Payload('userId', ParseUUIDPipe) userId: string) {
     return this.usersService.checkUserExists(userId);
+  }
+
+  @MessagePattern('user.get.all')
+  async getUsers() {
+    return this.usersService.getUsers();
   }
 }

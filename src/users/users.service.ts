@@ -143,6 +143,71 @@ export class UsersService extends PrismaClient implements OnModuleInit {
     }
   }
 
+  async getUserSubscriptions(userId: string) {
+    try {
+      const userExists = await this.checkUserExists(userId);
+
+      if (!userExists) {
+        throw new RpcException({
+          status: HttpStatus.NOT_FOUND,
+          message: 'User not found',
+        });
+      }
+
+      const subscriptions = await this.subscription.findMany({
+        where: {
+          userId,
+        },
+      });
+
+      return await Promise.all(
+        subscriptions.map(async (subscription) => {
+          const { id, teamId, leagueId, active, createdAt, userId } =
+            subscription;
+          const [team, league] = await Promise.all([
+            firstValueFrom(
+              this.client.send('competitions.team.id', {
+                teamId,
+              }),
+            ),
+            firstValueFrom(
+              this.client.send('competitions.league.id', {
+                leagueId,
+              }),
+            ),
+          ]);
+
+          return {
+            userId,
+            active,
+            id,
+            createdAt,
+            team,
+            league,
+          };
+        }),
+      );
+    } catch (error) {
+      this.logger.error(`Error getting user subscriptions ${userId}`, error);
+      throw new RpcException({
+        status: HttpStatus.BAD_REQUEST,
+        message: error.message || `Error getting user subscriptions ${userId}`,
+      });
+    }
+  }
+
+  async getUsers() {
+    try {
+      return this.userProfile.findMany({});
+    } catch (error) {
+      this.logger.error('Error getting user subscriptions', error);
+      throw new RpcException({
+        status: HttpStatus.BAD_REQUEST,
+        message: error.message || 'Error getting user subscriptions',
+      });
+    }
+  }
+
   async checkUserExists(userId: string): Promise<{ exists: boolean }> {
     const user = await this.userProfile.findUnique({
       where: { id: userId },
