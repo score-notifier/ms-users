@@ -109,7 +109,7 @@ export class UsersService extends PrismaClient implements OnModuleInit {
         });
       }
 
-      const subscription = await this.subscription.create({
+      return await this.subscription.create({
         data: {
           userId,
           teamId,
@@ -117,8 +117,6 @@ export class UsersService extends PrismaClient implements OnModuleInit {
           active: true,
         },
       });
-
-      return subscription;
     } catch (error) {
       throw new RpcException({
         status: error.status || HttpStatus.BAD_REQUEST,
@@ -128,12 +126,21 @@ export class UsersService extends PrismaClient implements OnModuleInit {
   }
 
   async getSubscriptions({ teamId, leagueId }: GetSubscriptionsDto) {
-    return this.subscription.findMany({
-      where: {
-        teamId: teamId,
-        leagueId: leagueId,
-      },
-    });
+    try {
+      return this.subscription.findMany({
+        where: {
+          teamId: teamId,
+          leagueId: leagueId,
+          active: true,
+        },
+      });
+    } catch (error) {
+      this.logger.error('Error getting user subscriptions', error);
+      throw new RpcException({
+        status: HttpStatus.BAD_REQUEST,
+        message: error.message || 'Error getting user subscriptions',
+      });
+    }
   }
 
   async checkUserExists(userId: string): Promise<{ exists: boolean }> {
